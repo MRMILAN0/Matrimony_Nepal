@@ -1,0 +1,14 @@
+{
+  "name": "matrimony-nepal",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "multer": "^2.0.2"
+  }
+}

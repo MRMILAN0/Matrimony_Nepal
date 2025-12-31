@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Matrimony Nepal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/app.js"></script>
+    <style>
+        .profile-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media(min-width: 800px) {
+            .profile-layout {
+                grid-template-columns: 340px 1fr;
+            }
+        }
+
+        .avatar-box {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 2rem;
+        }
+
+        .avatar-img,
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 40px;
+            object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .avatar-placeholder {
+            background: var(--bg-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--text-light);
+            border: 2px dashed var(--glass-border);
+        }
+
+        .avatar-box:hover .avatar-img {
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            background: var(--text-main);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-icon:hover {
+            transform: scale(1.1) rotate(5deg);
+            background: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <nav id="main-nav"></nav>
+
+    <div class="container profile-layout animate-fade-up">
+        <!-- Sidebar -->
+        <div class="card text-center" style="height: fit-content;">
+            <div class="avatar-box">
+                <img id="user-avatar-img" class="avatar-img hidden">
+                <div id="user-avatar-text" class="avatar-placeholder">?</div>
+                <label for="photo-upload" class="upload-icon">📷</label>
+                <input type="file" id="photo-upload" accept="image/*" class="hidden">
+            </div>
+
+            <h2 id="user-name" style="font-size: 1.5rem; margin-bottom: 0.5rem;">User</h2>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
+                <input id="user-location" class="input-field text-center" placeholder="Location">
+                <input id="user-profession" class="input-field text-center" placeholder="Profession">
+            </div>
+
+            <button onclick="saveProfile()" class="btn-primary w-full mt-8"><span>Save Changes</span></button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex flex-col gap-6">
+            <div class="card animate-fade-up animate-delay-1">
+                <h3
+                    style="font-size: 1.25rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; font-size: 0.85rem; margin-bottom: 1.5rem;">
+                    About Me</h3>
+                <textarea id="user-about" class="input-field" rows="4"
+                    placeholder="Share a few words about yourself..."></textarea>
+            </div>
+
+            <div class="card animate-fade-up animate-delay-2">
+                <h3
+                    style="font-size: 1.25rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; font-size: 0.85rem; margin-bottom: 1.5rem;">
+                    My Qualities</h3>
+                <div id="qualities-list" style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;">
+                </div>
+                <input id="new-quality" class="input-field" placeholder="Add a quality (e.g. Caring) and press Enter">
+            </div>
+
+            <div class="card animate-fade-up animate-delay-3">
+                <h3
+                    style="font-size: 1.25rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; font-size: 0.85rem; margin-bottom: 1.5rem;">
+                    Looking For</h3>
+                <textarea id="user-looking-for" class="input-field" rows="3"
+                    placeholder="What are you hoping to find?"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ... (Same JS Logic) ...
+        let userData = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            App.auth.requireUser();
+            userData = App.auth.getUser();
+            renderProfile();
+
+            document.getElementById('photo-upload').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('photo', file);
+                try {
+                    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const json = await res.json();
+                    if (json.url) { userData.photo = json.url; renderProfile(); saveProfile(true); }
+                } catch (err) { alert('Upload failed'); }
+            });
+
+            document.getElementById('new-quality').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (e.target.value.trim()) {
+                        userData.qualities = userData.qualities || [];
+                        userData.qualities.push(e.target.value.trim());
+                        e.target.value = '';
+                        renderQualities();
+                    }
+                }
+            });
+        });
+
+        function renderProfile() {
+            const img = document.getElementById('user-avatar-img');
+            const txt = document.getElementById('user-avatar-text');
+            if (userData.photo) { img.src = userData.photo; img.classList.remove('hidden'); txt.classList.add('hidden'); }
+            else { txt.textContent = userData.name ? userData.name.charAt(0) : '?'; img.classList.add('hidden'); txt.classList.remove('hidden'); }
+            document.getElementById('user-name').textContent = userData.name;
+            document.getElementById('user-location').value = userData.location || '';
+            document.getElementById('user-profession').value = userData.profession || '';
+            document.getElementById('user-about').value = userData.about || '';
+            document.getElementById('user-looking-for').value = userData.lookingFor || '';
+            renderQualities();
+        }
+
+        function renderQualities() {
+            const container = document.getElementById('qualities-list');
+            container.innerHTML = '';
+            (userData.qualities || []).forEach((q, i) => {
+                const tag = document.createElement('span');
+                tag.style.background = '#f1f5f9'; tag.style.color = '#334155';
+                tag.style.padding = '0.5rem 1rem'; tag.style.borderRadius = '99px';
+                tag.style.fontSize = '0.9rem'; tag.style.fontWeight = '600';
+                tag.innerHTML = `${q} <span onclick="removeQuality(${i})" style="margin-left:8px; cursor:pointer; color: #ef4444;">&times;</span>`;
+                container.appendChild(tag);
+            });
+        }
+        function removeQuality(i) { userData.qualities.splice(i, 1); renderQualities(); }
+        async function saveProfile(silent) {
+            userData.location = document.getElementById('user-location').value;
+            userData.profession = document.getElementById('user-profession').value;
+            userData.about = document.getElementById('user-about').value;
+            userData.lookingFor = document.getElementById('user-looking-for').value;
+            try { const u = await App.api.put(`/api/users/${userData.id}`, userData); App.auth.login(u); userData = u; if (!silent) alert('Saved!'); } catch (e) { if (!silent) alert(e.message); }
+        }
+    </script>
+</body>
+
+</html>
