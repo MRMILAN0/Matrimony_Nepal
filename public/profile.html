@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
     <title>My Profile - Matrimony Nepal</title>
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/app.js"></script>
@@ -93,13 +94,48 @@
             <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
                 <input id="user-location" class="input-field text-center" placeholder="Location">
                 <input id="user-profession" class="input-field text-center" placeholder="Profession">
+
+                <div style="text-align: left; width: 100%;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; display: block;">Date
+                        of Birth</label>
+                    <input id="user-dob" type="date" class="input-field text-center">
+                </div>
+
+                <!-- Privacy Toggles -->
+                <div
+                    style="width: 100%; display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; align-items: center;">
+
+                    <!-- Show Age Toggle -->
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 200px;">
+                        <span style="font-size: 0.9rem; color: var(--text-muted);">Show Age</span>
+                        <label class="switch">
+                            <input type="checkbox" id="user-show-age">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Show Photo Toggle -->
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 200px;">
+                        <span style="font-size: 0.9rem; color: var(--text-muted);">Show Photo</span>
+                        <label class="switch">
+                            <input type="checkbox" id="user-show-photo">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                </div>
             </div>
 
             <button onclick="saveProfile()" class="btn-primary w-full mt-8"><span>Save Changes</span></button>
+            <button onclick="deleteAccount()" class="w-full mt-8"
+                style="background: none; border: 1px solid #ef4444; color: #ef4444; padding: 0.75rem; border-radius: 99px; font-weight: 600; cursor: pointer; transition: all 0.2s;">Delete
+                Account</button>
         </div>
 
         <!-- Main Content -->
-        <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-10">
             <div class="card animate-fade-up animate-delay-1">
                 <h3
                     style="font-size: 1.25rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; font-size: 0.85rem; margin-bottom: 1.5rem;">
@@ -169,6 +205,11 @@
             document.getElementById('user-name').textContent = userData.name;
             document.getElementById('user-location').value = userData.location || '';
             document.getElementById('user-profession').value = userData.profession || '';
+            document.getElementById('user-dob').value = userData.dob || '';
+            document.getElementById('user-dob').value = userData.dob || '';
+            document.getElementById('user-show-age').checked = userData.showAge !== 0;
+            document.getElementById('user-show-photo').checked = userData.showPhoto !== 0;
+
             document.getElementById('user-about').value = userData.about || '';
             document.getElementById('user-looking-for').value = userData.lookingFor || '';
             renderQualities();
@@ -190,9 +231,33 @@
         async function saveProfile(silent) {
             userData.location = document.getElementById('user-location').value;
             userData.profession = document.getElementById('user-profession').value;
+            userData.dob = document.getElementById('user-dob').value;
+            userData.dob = document.getElementById('user-dob').value;
+            userData.showAge = document.getElementById('user-show-age').checked ? 1 : 0;
+            userData.showPhoto = document.getElementById('user-show-photo').checked ? 1 : 0;
+
             userData.about = document.getElementById('user-about').value;
             userData.lookingFor = document.getElementById('user-looking-for').value;
-            try { const u = await App.api.put(`/api/users/${userData.id}`, userData); App.auth.login(u); userData = u; if (!silent) alert('Saved!'); } catch (e) { if (!silent) alert(e.message); }
+            try {
+                const u = await App.api.put(`/api/users/${userData.id}`, userData);
+                App.auth.login(u);
+                userData = u;
+                if (!silent) App.ui.toast('Profile Saved!');
+            } catch (e) {
+                if (!silent) App.ui.toast(e.message, 'error');
+            }
+        }
+
+        function deleteAccount() {
+            App.ui.confirm("Are you sure? This will PERMANENTLY delete your account, photos, and messages. This cannot be undone.", async () => {
+                try {
+                    await App.api.delete('/api/me');
+                    App.ui.toast('Account deleted.');
+                    setTimeout(() => App.auth.logout(), 1000);
+                } catch (e) {
+                    App.ui.toast(e.message, 'error');
+                }
+            });
         }
     </script>
 </body>

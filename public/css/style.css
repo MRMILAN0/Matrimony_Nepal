@@ -27,6 +27,35 @@
     --max-width: 1040px;
 }
 
+[data-theme="dark"] {
+    --bg-body: #0b1121;
+    --bg-surface: #1e293b;
+    --bg-subtle: #111827;
+    --text-main: #ffffff;
+    --text-muted: #cbd5e1;
+    --text-light: #94a3b8;
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+}
+
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    color: var(--text-muted);
+    transition: transform 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    transform: rotate(15deg);
+    color: var(--text-main);
+}
+
 /* Base Styles */
 body {
     margin: 0;
@@ -118,8 +147,8 @@ nav {
     backdrop-filter: blur(12px);
     /* Blur effect for glass look */
     -webkit-backdrop-filter: blur(12px);
-    padding: 1.25rem 4rem;
-    /* Bigger padding */
+    padding: 1rem 2.5rem;
+    /* Reduced padding to move logo left */
     border-radius: 999px;
     box-shadow: 0 10px 25px -5px rgba(220, 20, 60, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -210,6 +239,18 @@ nav:hover {
     color: white;
 }
 
+.nav-badge {
+    background: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 99px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+}
+
 /* Cards */
 .card,
 .glass-panel {
@@ -257,7 +298,7 @@ p {
 
 /* Buttons */
 .btn-primary {
-    background: linear-gradient(135deg, var(--text-main), #1e293b);
+    background: linear-gradient(135deg, #0f172a, #1e293b);
     color: white;
     padding: 1.1rem 2.5rem;
     border-radius: 16px;
@@ -273,6 +314,7 @@ p {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    text-decoration: none !important;
 }
 
 .btn-primary::before {
@@ -317,7 +359,7 @@ p {
 }
 
 .input-field:focus {
-    background: white;
+    background: var(--bg-surface);
     border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
     outline: none;
@@ -332,10 +374,13 @@ p {
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 2.5rem;
 }
 
+/* ... existing styles ... */
+
+/* Utilities */
 .text-center {
     text-align: center;
 }
@@ -358,6 +403,18 @@ p {
 
 .gap-4 {
     gap: 1rem;
+}
+
+.gap-6 {
+    gap: 1.5rem;
+}
+
+.gap-8 {
+    gap: 2rem;
+}
+
+.gap-10 {
+    gap: 2.5rem;
 }
 
 .w-full {
@@ -402,6 +459,18 @@ p {
     }
 }
 
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* SECTION STYLES FOR HOMEPAGE */
 .section {
     padding: 6rem 0;
@@ -429,7 +498,7 @@ p {
 
 .feature-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.05);
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.05);
     border-color: rgba(37, 99, 235, 0.2);
 }
 
@@ -456,7 +525,7 @@ p {
     background: var(--bg-surface);
     padding: 2.5rem;
     border-radius: 24px;
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--glass-border);
     position: relative;
 }
@@ -481,16 +550,127 @@ p {
     line-height: 1;
 }
 
-.trust-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(37, 99, 235, 0.1);
-    color: var(--primary-dark);
+
+
+/* Trust Cards (Horizontal, Zoom on Hover) */
+.trust-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    padding: 0.75rem 1.5rem;
     border-radius: 99px;
-    font-size: 0.85rem;
+    /* Pill shape */
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    margin-bottom: 1.5rem;
-    border: 1px solid rgba(37, 99, 235, 0.2);
+    color: var(--text-main);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+    cursor: default;
+}
+
+.trust-card:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    border-color: rgba(220, 20, 60, 0.3);
+}
+
+/* Crimson Red Button (Nepali Red) */
+.btn-crimson-glow {
+    background: rgba(220, 20, 60, 0.85) !important;
+    /* Crimson 85% Opacity */
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3) !important;
+    border: 1px solid rgba(220, 20, 60, 0.5) !important;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    text-decoration: none !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-crimson-glow:hover {
+    background: rgba(220, 20, 60, 0.95) !important;
+    box-shadow: 0 6px 20px rgba(220, 20, 60, 0.5) !important;
+
+    .btn-blue-gold:hover {
+        background: rgba(0, 56, 147, 0.95) !important;
+        box-shadow: 0 6px 25px rgba(0, 56, 147, 0.5) !important;
+        transform: translateY(-2px);
+    }
+
+
+
+    /* Blue Gold Button */
+    /* Blue Gold Button (Nepali Blue Base) */
+    .btn-blue-gold {
+        background: rgba(0, 56, 147, 0.85) !important;
+        /* Nepali Blue 85% Opacity */
+        color: #ffd700 !important;
+        /* Gold Text */
+        border: 1px solid rgba(255, 215, 0, 0.4) !important;
+        /* Subtle Gold Border */
+        box-shadow: 0 4px 15px rgba(0, 56, 147, 0.3) !important;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        text-decoration: none !important;
+    }
+
+    transform: translateY(-2px);
+}
+
+/* iOS Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 30px;
+    flex-shrink: 0;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e2e8f0;
+    /* Slate 200 */
+    transition: .3s;
+    border-radius: 34px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input:checked+.slider {
+    background-color: #34c759;
+    /* Apple Green */
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px #34c759;
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
 }
