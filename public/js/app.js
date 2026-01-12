@@ -2,7 +2,6 @@
 
 const App = {
     // API Helpers
-    // API Helpers
     api: {
         getHeaders() {
             const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -92,7 +91,7 @@ const App = {
         },
         logout() {
             localStorage.removeItem('currentUser');
-            window.location.href = '/login.html';
+            window.location.href = '/login';
         },
         getUser() {
             const u = localStorage.getItem('currentUser');
@@ -100,7 +99,7 @@ const App = {
         },
         requireUser() {
             if (!this.getUser()) {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
             }
         }
     },
@@ -113,7 +112,9 @@ const App = {
             if (!nav) return;
 
             const theme = localStorage.getItem('theme') || 'light';
-            const icon = theme === 'dark' ? '☀️' : '🌙';
+            // iOS Style Switch for Dark Mode
+            // Reviewed CSS: .switch, .slider, input:checked + .slider present in style.css
+            const isDark = theme === 'dark';
 
             const brandHtml = `
                 <a href="/" class="nav-brand" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none;">
@@ -121,8 +122,14 @@ const App = {
                     <span style="font-weight: 800; font-size: 1.2rem; color: var(--text-main); letter-spacing: -0.02em;">Matrimony Nepal</span>
                 </a>
             `;
-
-            const toggleHtml = `<button onclick="App.ui.toggleTheme()" class="theme-toggle" title="Toggle Dark Mode">${icon}</button>`;
+            const toggleHtml = `
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: 0.5rem;">
+                    <label class="switch">
+                        <input type="checkbox" onchange="App.ui.toggleTheme()" ${isDark ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            `;
 
             if (user) {
                 // Fetch unread count
@@ -138,10 +145,10 @@ const App = {
 
                 nav.innerHTML = `
                     ${brandHtml}
-                    <div class="nav-links" id="nav-menu">
-                        <a href="/browse.html" class="nav-link">Browse</a>
-                        <a href="/inbox.html" class="nav-link">Inbox ${badgeHtml}</a>
-                        <a href="/profile.html" class="nav-link">Profile</a>
+                    <div class="nav-links" id="nav-menu" style="align-items: center;">
+                        <a href="/browse" class="nav-link">Browse</a>
+                        <a href="/inbox" class="nav-link">Inbox ${badgeHtml}</a>
+                        <a href="/profile" class="nav-link">Profile</a>
                         <a href="#" onclick="App.ui.showSupport()" class="nav-link">Help</a>
                         ${toggleHtml}
                         <a href="#" onclick="App.auth.logout()" class="nav-btn">Logout</a>
@@ -150,11 +157,11 @@ const App = {
             } else {
                 nav.innerHTML = `
                     ${brandHtml}
-                    <div class="nav-links" id="nav-menu">
+                    <div class="nav-links" id="nav-menu" style="align-items: center;">
                         <a href="#" onclick="App.ui.showSupport()" class="nav-link">Help</a>
                         ${toggleHtml}
-                        <a href="/login.html" class="nav-link">Login</a>
-                        <a href="/signup.html" class="nav-btn">Start Here</a>
+                        <a href="/login" class="nav-link">Login</a>
+                        <a href="/signup" class="nav-btn">Start Here</a>
                     </div>
                 `;
             }
@@ -210,13 +217,14 @@ const App = {
                 <h3 style="margin-top: 0; color: var(--text-main);">Confirm Action</h3>
                 <p style="color: var(--text-muted); margin-bottom: 1.5rem;">${message}</p>
                 <div style="display: flex; gap: 1rem; justify-content: center;">
-                    <button id="confirm-cancel" class="btn-primary" style="background: var(--bg-subtle); color: var(--text-main);">Cancel</button>
-                    <button id="confirm-ok" class="btn-primary" style="background: #ef4444; color: white;">Confirm</button>
+                    <button id="confirm-cancel" class="nav-btn" style="background: #003893; border: none; cursor: pointer;">Cancel</button>
+                    <button id="confirm-ok" class="nav-btn" style="border: none; cursor: pointer;">Confirm</button>
                 </div>
             `;
             overlay.appendChild(box);
             document.body.appendChild(overlay);
 
+            document.getElementById('confirm-cancel').onclick = () => overlay.remove();
             document.getElementById('confirm-ok').onclick = () => {
                 overlay.remove();
                 onConfirm();
@@ -301,7 +309,7 @@ const App = {
                     App.auth.login(res);
                     App.ui.toast("Verified! Welcome to Matrimony Nepal");
                     overlay.remove();
-                    window.location.href = (res.qualities && res.qualities.length > 0) ? '/browse.html' : '/profile.html';
+                    window.location.href = (res.qualities && res.qualities.length > 0) ? '/browse' : '/profile';
                 } catch (e) {
                     App.ui.toast(e.message, 'error');
                 }
@@ -329,7 +337,7 @@ const App = {
                 overlay.remove();
                 if (window.location.pathname.includes('signup')) {
                     // Redirect to login or home if they cancel signup verification
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                 }
             };
 
@@ -337,16 +345,58 @@ const App = {
             document.getElementById('resend-btn').onclick = handleResend;
             document.getElementById('cancel-verify').onclick = handleCancel;
         }
+    },
+    init: () => {
+        // Apply theme immediately
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+
+        App.ui.updateNav();
+        // Poll for notifications
+        setInterval(() => App.ui.updateNav(), 10000);
+
+        // Parallax Halo Effect
+        const parallaxWrapper = document.createElement('div');
+        parallaxWrapper.className = 'parallax-wrapper';
+        document.body.appendChild(parallaxWrapper);
+
+        const orbs = [
+            { size: '600px', color: 'var(--primary)', top: '-10%', left: '-10%', speed: 0.2 },
+            { size: '500px', color: 'var(--accent)', top: '40%', right: '-10%', speed: 0.15 },
+            { size: '400px', color: '#DC143C', bottom: '-10%', left: '20%', speed: 0.1 },
+            { size: '300px', color: '#f59e0b', top: '20%', left: '50%', speed: 0.25 }
+        ];
+
+        orbs.forEach((orb, index) => {
+            const el = document.createElement('div');
+            el.className = 'halo-orb';
+            Object.assign(el.style, {
+                width: orb.size,
+                height: orb.size,
+                background: orb.color,
+                top: orb.top || 'auto',
+                left: orb.left || 'auto',
+                right: orb.right || 'auto',
+                bottom: orb.bottom || 'auto'
+            });
+            parallaxWrapper.appendChild(el);
+            orb.el = el; // Store reference
+        });
+
+        window.addEventListener('scroll', () => {
+            const scrolled = window.scrollY;
+            requestAnimationFrame(() => {
+                orbs.forEach(orb => {
+                    // Move orb based on scroll speed
+                    const yPos = scrolled * orb.speed;
+                    orb.el.style.transform = `translateY(${yPos}px)`;
+                });
+            });
+        });
     }
 };
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // Apply theme immediately
-    const theme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', theme);
-
-    App.ui.updateNav();
-    // Poll for notifications every 10 seconds
-    setInterval(() => App.ui.updateNav(), 10000);
+    App.init();
 });

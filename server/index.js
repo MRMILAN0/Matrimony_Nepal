@@ -61,7 +61,7 @@ function decrypt(text) {
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public'), { extensions: ['html'] }));
 
 // Configure Multer (Memory Storage for Encryption)
 const storage = multer.memoryStorage();
